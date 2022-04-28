@@ -29,7 +29,7 @@ byte calculateCheckSum(const char *NMEA_Sentence, int sentenceLength);
  * @param inclination_MP    [rad] angle of inclination between the +x axis and the movement direction (in current epoch)
  * @return char $SNODO,[time/sec],[distance/mm],[P/N],[inclination/rad],[P/N]*[checksum]<CR><LF>
  */
-char create_NMEA(int originTime, float hdist_MP, float inclination_MP);
+void create_NMEA(int originTime, float hdist_MP, float inclination_MP);
 
 // ====================================================
 // === === === ABBREVIATIONS & NOMENCLATURE === === ===
@@ -183,6 +183,12 @@ polar_t compute_dist_inclin(coord_t XY_OLD, coord_t XY_NEW);
  */
 polar_t oldRef2newRef();
 
+/**
+ * @brief Set the direction encoder ZERO reading
+ * 
+ * @param dirc_reading 
+ */
+void set_dircZero();
 
 // // Arduino Bluetooth module HC-06
 // // Bluetooth connecting pin settings

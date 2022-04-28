@@ -139,9 +139,11 @@ coord_t computeXY_polar(coord_t XY0, float distance, float inclination) {
     return newXY;
 }
 
-void compute_newTP(int dirc_reading, int dist_reading) {
+void compute_newTP(int *dirc_reading, int dist_reading) {
     theta = dirc_step * dirc_reading;
     DEBUGG("Mereny uhel smeroveho enkoderu [rad]:"); DEBUGG(theta);
+    //BDEBUGG("Mereny uhel smeroveho enkoderu [imp]:"); 
+    BDEBUGG(dirc_reading);
 
     /**
      * @brief differential horizontal distance between TPs
@@ -217,7 +219,8 @@ void doReset() {
   inclination_TP = 0;
   // XY coordinates of the NEW MP position (while sending NMEA)
   XY_Ref = {hdist_TP_MP + parallel_MP_Ref, perpendicular_MP_Ref};
-  DEBUGG("joo, jedu, doReset.");
+  DEBUGG("Origin set.");
+  BDEBUGG("Origin set.");
 }
 
 
@@ -248,7 +251,7 @@ byte calculateCheckSum(const char *NMEA_Sentence, int sentenceLength) {
   return result;
 }
 
-char create_NMEA(int originTime, float distance, float inclination) {
+void create_NMEA(int originTime, float distance, float inclination) {
   // computingCount = 0;
   DEBUGG("Zacinam resit NMEA zpravu...");
   char NMEA_inside[80] = "";
@@ -273,7 +276,6 @@ char create_NMEA(int originTime, float distance, float inclination) {
   DEBUGG("^^^ ^^^ ^^^ NMEA SENTENCE ^^^ ^^^ ^^^");
   bluetooth.write( NMEA_whole );
 
-  return NMEA_whole;
 }
 
 // sets the origin of reference coordinate system
@@ -283,12 +285,34 @@ void checkForBluetooth() {
     char BTinput = bluetooth.read(); 
     if( BTinput == '0' ) {
       doReset();
+    } else if (BTinput == '1' ) {
+      DEBUGG("Jed asi metr rovne..."); BDEBUGG("Jed asi metr rovne...");
+      set_dircZero();
     }
 
-    DEBUGG(BTinput); BDEBUGG(BTinput);
+    DEBUGG( int(BTinput) ); //BDEBUGG( int(BTinput) );
     DEBUGG("BT jede");
     BDEBUGG("BT jede...");
   }
+}
+
+void set_dircZero() {
+  int count = 200;
+  int reading = 0;
+  while (dist_position < count)
+  {
+    
+    for (int i = 0; i <= dist_position; i++)
+    {
+      reading += dirc_position;
+    }
+    
+  }
+
+  dirc_position -= reading / count; 
+  dist_position = 0;
+  DEBUGG("Smer 0 nastaven"); BDEBUGG("Smer 0 nastaven");
+  DEBUGG( dirc_position); BDEBUGG( dirc_position );
 }
 
 void setup() {
