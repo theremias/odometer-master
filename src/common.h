@@ -6,11 +6,11 @@
 #include "math.h"
 #include "SoftwareSerial.h"
 
-#define DEBUGG(...) Serial.println(__VA_ARGS__)
-//#define DEBUGG(...)
+// #define DEBUGG(...) Serial.println(__VA_ARGS__)
+#define DEBUGG(...)
 
-#define BDEBUGG(...) bluetooth.write(__VA_ARGS__)
-//#define BDEBUGG(...)
+// #define BDEBUGG(...) bluetooth.println(__VA_ARGS__)
+#define BDEBUGG(...)
 
 /**
  * @brief calculates chcecksum for NMEA sentence
@@ -165,7 +165,7 @@ coord_t computeXY_polar(coord_t XY0, float distance, float inclination);
  * @param dirc_reading  reading on direction encoder
  * @param dist_reading  reading on dostance encoder
  */
-void compute_newTP(int dirc_reading, int dist_reading);
+void compute_newTP(volatile int &dirc_reading, volatile int &dist_reading);
 
 /**
  * @brief computes distance and inclination from coordinates

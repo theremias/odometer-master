@@ -36,6 +36,8 @@ void ISR_direction() {
     DEBUGG("Ctena zmena na smerovem encoderu");
 }
 
+int dirc_position_offset = 0;
+
 /**
  * @brief number of differential computing since last enumeration of MP and Ref 
  */
@@ -139,11 +141,11 @@ coord_t computeXY_polar(coord_t XY0, float distance, float inclination) {
     return newXY;
 }
 
-void compute_newTP(int *dirc_reading, int dist_reading) {
+void compute_newTP(volatile int &dirc_reading, volatile int &dist_reading) {
     theta = dirc_step * dirc_reading;
     DEBUGG("Mereny uhel smeroveho enkoderu [rad]:"); DEBUGG(theta);
-    //BDEBUGG("Mereny uhel smeroveho enkoderu [imp]:"); 
-    BDEBUGG(dirc_reading);
+    BDEBUGG("Mereny uhel smeroveho enkoderu [imp]:"); 
+    BDEBUGG(int(dirc_reading));
 
     /**
      * @brief differential horizontal distance between TPs
@@ -208,6 +210,36 @@ polar_t oldRef2newRef() {
     return disInc;
 }
 
+void set_dircZero() {
+  int count = 2000;
+  long int reading = 0;
+  int old_dist_position = 0;
+  int reading_count = 0;
+  while (abs(dist_position) < count)
+  {
+    if( dist_position != old_dist_position ) {
+      reading += dirc_position;
+      reading_count++;
+      old_dist_position = dist_position;
+      // BDEBUGG("ujeta vzdalenost");
+      // BDEBUGG(dist_position);
+      // BDEBUGG("aktualni cteni");
+      // BDEBUGG(dirc_position);
+      // BDEBUGG("soucet cteni");
+      // BDEBUGG(reading);
+      // BDEBUGG("cislo cteni");
+      // BDEBUGG(reading_count);
+      }
+  }
+
+  dirc_position_offset = reading / reading_count; 
+  dist_position = 0;
+  DEBUGG("Smer 0 nastaven"); 
+  DEBUGG( dirc_position_offset ); 
+  bluetooth.println("SMER 0 NASTAVEN\r\nUrcen offset:");
+  bluetooth.println(dirc_position_offset);
+}
+
 
 
 void doReset() {
@@ -220,7 +252,7 @@ void doReset() {
   // XY coordinates of the NEW MP position (while sending NMEA)
   XY_Ref = {hdist_TP_MP + parallel_MP_Ref, perpendicular_MP_Ref};
   DEBUGG("Origin set.");
-  BDEBUGG("Origin set.");
+  bluetooth.println("Definovan novy referencni souradny system.");
 }
 
 
@@ -232,8 +264,10 @@ void setup_Bluetooth() {
   // zahájení komunikace s Bluetooth modulem
   // skrze Softwarovou sériovou linku rychlostí 38400 baud
   bluetooth.begin(38400);
-  bluetooth.write("Arduino zapnuto, test Bluetooth..");
+  bluetooth.println("Bluetooth spojeni navazano.");
+  BDEBUGG("fuuuuuu");
   DEBUGG("Arduino test, pri testu spojeni...");
+  bluetooth.write("to je moc i na me");
 }
 
 /**
@@ -274,7 +308,7 @@ void create_NMEA(int originTime, float distance, float inclination) {
   DEBUGG("=== === === NMEA SENTENCE === === ==="); 
   DEBUGG(NMEA_whole);
   DEBUGG("^^^ ^^^ ^^^ NMEA SENTENCE ^^^ ^^^ ^^^");
-  bluetooth.write( NMEA_whole );
+  bluetooth.println( NMEA_whole );
 
 }
 
@@ -286,34 +320,17 @@ void checkForBluetooth() {
     if( BTinput == '0' ) {
       doReset();
     } else if (BTinput == '1' ) {
-      DEBUGG("Jed asi metr rovne..."); BDEBUGG("Jed asi metr rovne...");
+      DEBUGG("Jed metr rovne..."); 
+      bluetooth.println("NASTAVENI 0 SMEROVEHO ENCODERU\r\nJed metr rovne vpred...");
       set_dircZero();
     }
 
-    DEBUGG( int(BTinput) ); //BDEBUGG( int(BTinput) );
+    DEBUGG( int(BTinput) ); BDEBUGG( int(BTinput) );
     DEBUGG("BT jede");
     BDEBUGG("BT jede...");
   }
 }
 
-void set_dircZero() {
-  int count = 200;
-  int reading = 0;
-  while (dist_position < count)
-  {
-    
-    for (int i = 0; i <= dist_position; i++)
-    {
-      reading += dirc_position;
-    }
-    
-  }
-
-  dirc_position -= reading / count; 
-  dist_position = 0;
-  DEBUGG("Smer 0 nastaven"); BDEBUGG("Smer 0 nastaven");
-  DEBUGG( dirc_position); BDEBUGG( dirc_position );
-}
 
 void setup() {
   // initialize serial communication
@@ -331,7 +348,8 @@ void loop() {
  //read_MPU();
   //DEBUGG("MPU precteno");
   if ( abs( dist_position ) > dist_steps2compute) {
-    compute_newTP(dirc_position, dist_position);
+    volatile int dirc_position_true = dirc_position - dirc_position_offset;
+    compute_newTP(dirc_position_true, dist_position);
     dist_position = 0;
     diffCount++;
     DEBUGG("Diferencialni vypocet cislo:");
@@ -342,7 +360,6 @@ void loop() {
     diffCount = 0;
     polar_t toSend = oldRef2newRef();
     create_NMEA(originMilisec, toSend.distance, toSend.inclination);
-    // bluetooth.write(NMEA);
   }
   
   checkForBluetooth();
