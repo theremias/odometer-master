@@ -165,7 +165,7 @@ coord_t computeXY_polar(coord_t XY0, float distance, float inclination);
  * @param dirc_reading  reading on direction encoder
  * @param dist_reading  reading on dostance encoder
  */
-void compute_newTP(int dirc_reading, int dist_reading);
+void compute_newTP(volatile int* dirc_reading, int dist_reading);
 
 /**
  * @brief computes distance and inclination from coordinates

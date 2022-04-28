@@ -139,11 +139,11 @@ coord_t computeXY_polar(coord_t XY0, float distance, float inclination) {
     return newXY;
 }
 
-void compute_newTP(int *dirc_reading, int dist_reading) {
-    theta = dirc_step * dirc_reading;
+void compute_newTP(volatile int *dirc_reading, int dist_reading) {
+    theta = dirc_step * (*dirc_reading);
     DEBUGG("Mereny uhel smeroveho enkoderu [rad]:"); DEBUGG(theta);
     //BDEBUGG("Mereny uhel smeroveho enkoderu [imp]:"); 
-    BDEBUGG(dirc_reading);
+    BDEBUGG(*dirc_reading);
 
     /**
      * @brief differential horizontal distance between TPs
@@ -331,7 +331,7 @@ void loop() {
  //read_MPU();
   //DEBUGG("MPU precteno");
   if ( abs( dist_position ) > dist_steps2compute) {
-    compute_newTP(dirc_position, dist_position);
+    compute_newTP(&dirc_position, dist_position);
     dist_position = 0;
     diffCount++;
     DEBUGG("Diferencialni vypocet cislo:");
