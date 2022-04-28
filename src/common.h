@@ -86,17 +86,17 @@ char create_NMEA(int originTime, float hdist_MP, float inclination_MP);
 /**
  * @brief to which Arduino pin is B phase of distance encoder attached
  */
-#define dist_PinB 4
+#define dist_PinB 14
 
 /**
  * @brief number of steps of distance encoder to compute NEW position of TP
  */
-#define dist_steps2compute 12
+#define dist_steps2compute 20
 
 /**
  * @brief how many computing of TP position occurs before computing NEW position of MP & Ref and sending NMEA sentence
  */
-#define compute2sendMultiplier 10
+#define compute2sendMultiplier 15
 
 // ==================================================
 // === === === DIRECTION ENCODER DEFINING === === ===
@@ -114,7 +114,7 @@ char create_NMEA(int originTime, float hdist_MP, float inclination_MP);
 /**
  * @brief to which Arduino pin is B phase of direction encoder attached
  */
-#define dirc_PinB 5
+#define dirc_PinB 7
 
 /**
  * @brief 2D cartesian coordinates

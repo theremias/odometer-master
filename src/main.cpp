@@ -118,7 +118,6 @@ float inclination_MP;
 
 /**
  * @brief horizontal distance between OLD MP and NEW MP
- * 
  */
 float hdist_MP;
 
@@ -140,7 +139,6 @@ coord_t computeXY_polar(coord_t XY0, float distance, float inclination) {
     return newXY;
 }
 
-// computes angle between +x axis and TP(n-1) to TP(n) line and distance between TP(n-1) and TP(n)
 void compute_newTP(int dirc_reading, int dist_reading) {
     theta = dirc_step * dirc_reading;
     DEBUGG("Mereny uhel smeroveho enkoderu [rad]:"); DEBUGG(theta);
@@ -212,34 +210,21 @@ polar_t oldRef2newRef() {
 
 void doReset() {
   // time of estabilishing origin of the system
-  int originMilisec = millis();
+  originMilisec = millis();
   // XY coordinates of the touch point of wheel
-  coord_t XY_TP = {0, 0};
+  XY_TP = {0, 0};
   // angle between +x axis and TP(n-1) to TP(n) line 
-  float inclination_TP = 0;
+  inclination_TP = 0;
   // XY coordinates of the NEW MP position (while sending NMEA)
-  coord_t XY_MP = {hdist_TP_MP, 0};
+  XY_Ref = {hdist_TP_MP + parallel_MP_Ref, perpendicular_MP_Ref};
   DEBUGG("joo, jedu, doReset.");
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Bluetooth setup
+/**
+ * @brief Set the up Bluetooth object
+ * 
+ */
 void setup_Bluetooth() {
   // zahájení komunikace s Bluetooth modulem
   // skrze Softwarovou sériovou linku rychlostí 38400 baud
@@ -248,6 +233,13 @@ void setup_Bluetooth() {
   DEBUGG("Arduino test, pri testu spojeni...");
 }
 
+/**
+ * @brief calculates checksum of a sentence (XOR)
+ * 
+ * @param NMEA_Sentence sentence to be calculated checksum for
+ * @param sentenceLength length of the sentence
+ * @return byte two hexadecimal characters
+ */
 byte calculateCheckSum(const char *NMEA_Sentence, int sentenceLength) {
   byte result = 0;
   for( int i = 0; i < sentenceLength; i++) {
@@ -294,19 +286,40 @@ void checkForBluetooth() {
     }
 
     DEBUGG(BTinput); BDEBUGG(BTinput);
-    DEBUGG("Origin set");
-    BDEBUGG("Origin set...");
+    DEBUGG("BT jede");
+    BDEBUGG("BT jede...");
   }
 }
 
 void setup() {
+  // initialize serial communication
+  // (115200 chosen because it is required for Teapot Demo output, but it's
+  // really up to you depending on your project)
   Serial.begin(115200);
-  bluetooth.begin(115200);
+  DEBUGG("Komunikace na serial portu zapocala...");
+  //setup_MPU();
+  //DEBUGG("MPU nastaveno");
+  setup_encoders();
+  setup_Bluetooth();
 }
 
 void loop() {
-  Serial.println("IN D LOOP");
-  bluetooth.println("IN DA LOOP");
-  delay(1000);
-  // put your main code here, to run repeatedly:
+ //read_MPU();
+  //DEBUGG("MPU precteno");
+  if ( abs( dist_position ) > dist_steps2compute) {
+    compute_newTP(dirc_position, dist_position);
+    dist_position = 0;
+    diffCount++;
+    DEBUGG("Diferencialni vypocet cislo:");
+    DEBUGG(diffCount);
+  }
+
+  if( diffCount >= compute2sendMultiplier) {
+    diffCount = 0;
+    polar_t toSend = oldRef2newRef();
+    create_NMEA(originMilisec, toSend.distance, toSend.inclination);
+    // bluetooth.write(NMEA);
+  }
+  
+  checkForBluetooth();
 }
