@@ -22,12 +22,12 @@
 byte calculateCheckSum(const char *NMEA_Sentence, int sentenceLength);
 
 /**
- * @brief creates NMEA sentence 
+ * @brief creates NMEA sentence and sends it via bluetooth
  * 
  * @param originTime        [milisec] number of seconds since estabilishing the origin of coordinate system
  * @param hdist_MP          [m] horizontal distance traveled
  * @param inclination_MP    [rad] angle of inclination between the +x axis and the movement direction (in current epoch)
- * @return char $SNODO,[time/sec],[distance/mm],[P/N],[inclination/rad],[P/N]*[checksum]<CR><LF>
+ * @return "$SNODO,[time/sec],[distance/mm],[P/N],[inclination/rad],[P/N]*[checksum]<CR><LF>"
  */
 void create_NMEA(int originTime, float hdist_MP, float inclination_MP);
 
@@ -76,7 +76,7 @@ void create_NMEA(int originTime, float hdist_MP, float inclination_MP);
 /**
  * @brief numer of pulses per revolution of distance encoder
  */
-#define dist_Ppr 600
+#define dist_Ppr 360
 
 /**
  * @brief to which Arduino pin is A phase of distance encoder attached
@@ -190,7 +190,8 @@ polar_t oldRef2newRef();
  */
 void set_dircZero();
 
-// // Arduino Bluetooth module HC-06
-// // Bluetooth connecting pin settings
-// #define RX 11
-// #define TX 10
+/**
+ * @brief makes additional measure and sends NMEA sentence
+ * 
+ */
+void makeMeasure();

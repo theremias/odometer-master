@@ -24,7 +24,9 @@ void ISR_distance() {
     } else {
       dist_position++;
     }
-    DEBUGG("Ctena zmena na vzdalenostnim encoderu");
+    if (dist_position % 10 == 0) {
+          DEBUGG("Ctena 10. zmena na vzdalenostnim encoderu");
+    }
 }
 
 void ISR_direction() {
@@ -33,7 +35,9 @@ void ISR_direction() {
     } else {
       dirc_position++;
     }
-    DEBUGG("Ctena zmena na smerovem encoderu");
+    if (dirc_position % 10 == 0) {
+      DEBUGG("Ctena 10. zmena na smerovem encoderu");
+    }
 }
 
 int dirc_position_offset = 0;
@@ -211,7 +215,7 @@ polar_t oldRef2newRef() {
 }
 
 void set_dircZero() {
-  int count = 2000;
+  int count = 10000;
   long int reading = 0;
   int old_dist_position = 0;
   int reading_count = 0;
@@ -221,15 +225,26 @@ void set_dircZero() {
       reading += dirc_position;
       reading_count++;
       old_dist_position = dist_position;
-      // BDEBUGG("ujeta vzdalenost");
-      // BDEBUGG(dist_position);
-      // BDEBUGG("aktualni cteni");
-      // BDEBUGG(dirc_position);
-      // BDEBUGG("soucet cteni");
-      // BDEBUGG(reading);
-      // BDEBUGG("cislo cteni");
-      // BDEBUGG(reading_count);
+      BDEBUGG("ujeta vzdalenost");
+      BDEBUGG(dist_position);
+      BDEBUGG("aktualni cteni");
+      BDEBUGG(dirc_position);
+      BDEBUGG("soucet cteni");
+      BDEBUGG(reading);
+      BDEBUGG("cislo cteni");
+      BDEBUGG(reading_count);
       }
+
+    if ( bluetooth.available() ) {
+    char BTinput = bluetooth.read(); 
+    if( BTinput == '0' ) {
+      char tiskni[]= "";
+      sprintf(tiskni, "%s %d", 
+                      "Cteni smeru: ",
+                      dirc_position );
+      bluetooth.println(tiskni);
+    }
+  }
   }
 
   dirc_position_offset = reading / reading_count; 
@@ -251,6 +266,7 @@ void doReset() {
   inclination_TP = 0;
   // XY coordinates of the NEW MP position (while sending NMEA)
   XY_Ref = {hdist_TP_MP + parallel_MP_Ref, perpendicular_MP_Ref};
+  dist_position = 0;
   DEBUGG("Origin set.");
   bluetooth.println("Definovan novy referencni souradny system.");
 }
@@ -265,9 +281,7 @@ void setup_Bluetooth() {
   // skrze Softwarovou sériovou linku rychlostí 38400 baud
   bluetooth.begin(38400);
   bluetooth.println("Bluetooth spojeni navazano.");
-  BDEBUGG("fuuuuuu");
   DEBUGG("Arduino test, pri testu spojeni...");
-  bluetooth.write("to je moc i na me");
 }
 
 /**
@@ -308,8 +322,14 @@ void create_NMEA(int originTime, float distance, float inclination) {
   DEBUGG("=== === === NMEA SENTENCE === === ==="); 
   DEBUGG(NMEA_whole);
   DEBUGG("^^^ ^^^ ^^^ NMEA SENTENCE ^^^ ^^^ ^^^");
-  bluetooth.println( NMEA_whole );
+  bluetooth.print( NMEA_whole );
 
+}
+
+void makeMeasure() {
+    diffCount = 0;
+    polar_t toSend = oldRef2newRef();
+    create_NMEA(originMilisec, toSend.distance, toSend.inclination);
 }
 
 // sets the origin of reference coordinate system
@@ -321,13 +341,18 @@ void checkForBluetooth() {
       doReset();
     } else if (BTinput == '1' ) {
       DEBUGG("Jed metr rovne..."); 
-      bluetooth.println("NASTAVENI 0 SMEROVEHO ENCODERU\r\nJed metr rovne vpred...");
+      bluetooth.println("NASTAVENI 0 SMEROVEHO ENCODERU\r\nJed rovne vpred...");
       set_dircZero();
+    } else if (BTinput == '2') {
+      makeMeasure();
+      bluetooth.println("Domereno");
+    } else if (BTinput == '3') {
+      char tiskni[]= "";
+      sprintf(tiskni, "%s %d", 
+                      "Cteni smeru: ",
+                      dirc_position );
+      bluetooth.println(tiskni);
     }
-
-    DEBUGG( int(BTinput) ); BDEBUGG( int(BTinput) );
-    DEBUGG("BT jede");
-    BDEBUGG("BT jede...");
   }
 }
 
