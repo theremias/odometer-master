@@ -137,6 +137,14 @@ void setup_encoders() {
   attachInterrupt(digitalPinToInterrupt(dirc_PinA), ISR_direction, RISING);
 }
 
+polar_t compute_dist_inclin(coord_t XY_OLD, coord_t XY_NEW) {
+    polar_t result;
+    float dx = XY_NEW.X - XY_OLD.X;
+    float dy = XY_NEW.Y - XY_OLD.Y;
+    result.distance = sqrt( pow( dx, 2 ) + pow( dy, 2 ) );
+    result.inclination = atan2( dy, dx );
+    return result;
+}
 
 coord_t computeXY_polar(coord_t XY0, float distance, float inclination) {
     coord_t newXY;
@@ -169,14 +177,6 @@ void compute_newTP(volatile int &dirc_reading, volatile int &dist_reading) {
     DEBUGG(XY_TP.X); DEBUGG(XY_TP.Y);
 }
 
-polar_t compute_dist_inclin(coord_t XY_OLD, coord_t XY_NEW) {
-    polar_t result;
-    float dx = XY_NEW.X - XY_OLD.X;
-    float dy = XY_NEW.Y - XY_OLD.Y;
-    result.distance = sqrt( pow( dx, 2 ) + pow( dy, 2 ) );
-    result.inclination = atan2( dy, dx );
-    return result;
-}
 
 polar_t oldRef2newRef() {
     /**
@@ -215,7 +215,7 @@ polar_t oldRef2newRef() {
 }
 
 void set_dircZero() {
-  int count = 10000;
+  int count = 1000;
   long int reading = 0;
   int old_dist_position = 0;
   int reading_count = 0;
@@ -353,6 +353,7 @@ void checkForBluetooth() {
                       dirc_position );
       bluetooth.println(tiskni);
     }
+    DEBUGG("VOLEALEUZZZZZ");
   }
 }
 

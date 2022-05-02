@@ -1,13 +1,13 @@
 #pragma once
 
-#define PIN_BLUETOOTH_RX    11
-#define PIN_BLUETOOTH_TX    10
+#define PIN_BLUETOOTH_RX    7
+#define PIN_BLUETOOTH_TX    6
 
 #include "math.h"
 #include "SoftwareSerial.h"
 
-// #define DEBUGG(...) Serial.println(__VA_ARGS__)
-#define DEBUGG(...)
+#define DEBUGG(...) Serial.println(__VA_ARGS__)
+// #define DEBUGG(...)
 
 // #define BDEBUGG(...) bluetooth.println(__VA_ARGS__)
 #define BDEBUGG(...)
@@ -86,7 +86,7 @@ void create_NMEA(int originTime, float hdist_MP, float inclination_MP);
 /**
  * @brief to which Arduino pin is B phase of distance encoder attached
  */
-#define dist_PinB 14
+#define dist_PinB 4
 
 /**
  * @brief number of steps of distance encoder to compute NEW position of TP
@@ -114,7 +114,7 @@ void create_NMEA(int originTime, float hdist_MP, float inclination_MP);
 /**
  * @brief to which Arduino pin is B phase of direction encoder attached
  */
-#define dirc_PinB 7
+#define dirc_PinB 5
 
 /**
  * @brief 2D cartesian coordinates
